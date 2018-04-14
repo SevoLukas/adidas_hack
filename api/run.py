@@ -47,7 +47,7 @@ def recommend_product():
         most_probable = np.argmax(output_vec)
         accuracy = np.max(output_vec) * 100
         product = PRODUCT_CODE[PRODUCT_OHE == most_probable].values[0]
-    except:
+    except Exception:
         accuracy = 100
         if gender_code == 1:
             product = 'BR6930'
