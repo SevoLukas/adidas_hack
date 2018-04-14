@@ -14,7 +14,7 @@ async def hello():
     conn = await asyncpg.connect(user=DB_USER, password=DB_PASS, database=DB_NAME, host=DB_HOST, port=DB_PORT)
     await conn.fetch("SELECT 1")
     print('we have connection')
-    conn.close()
+    await conn.close()
 
     return "Fuck you in the ass!"
 
