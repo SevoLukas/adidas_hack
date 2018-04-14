@@ -3,3 +3,5 @@ Flask==0.12.2
 Pillow==5.1.0
 requests==2.18.4
 gunicorn==19.7.1
+quart==0.5.0
+asyncpg==0.15.0

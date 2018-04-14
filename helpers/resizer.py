@@ -12,7 +12,7 @@ s3 = boto3.resource('s3', aws_access_key_id=os.getenv('AWS_ACCESS_KEY', ),
 BUCKET = 'rekognition-adihack'
 
 
-def resize_and_upload(url, face_id, height, width, top, left):
+async def resize_and_upload(url, face_id, height, width, top, left):
     try:
         response = requests.get(url)
         unprocessed_image = Image.open(BytesIO(response.content))
