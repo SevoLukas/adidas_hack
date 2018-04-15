@@ -86,6 +86,27 @@ def resize_api():
     return 'ok'
 
 
+@app.route("/last-info", methods=["GET"])
+def get_last_info():
+    limit = request.args.get('limit', 50)
+    user_id = request.args.get('user_id')
+    query = """
+    SELECT adi_face.* FROM adi_face JOIN adi_user a ON adi_face.user_id = a.id WHERE adi_face.user_id = {} LIMIT {}
+    """.format(user_id, limit)
+
+    with get_cursor() as cursor:
+        cursor.execute(query)
+    response = app.response_class(
+        response=json.dumps(cursor.fetchall()),
+        status=200,
+        mimetype='application/json'
+    )
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE,OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, Content-Length, X-Requested-With'
+    return response
+
+
 @app.route("/get-record", methods=['POST'])
 def get_record():
     adi_client = request.get_json(silent=True)
