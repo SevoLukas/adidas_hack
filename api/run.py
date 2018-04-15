@@ -37,10 +37,11 @@ def get_record():
         INSERT INTO adi_client (gender) VALUES(%s)
         RETURNING id
         """
-        cur.execute(query, ('Female',))
+        cur.execute(query, (adi_client.get('gender'),))
         adi_client_id = cur.fetchone()[0]
         query = """
-        INSERT INTO adi_face (user_id,
+        INSERT INTO adi_face (id,
+                              user_id,
                               camera_id,
                               min_age,
                               max_age,
@@ -53,9 +54,10 @@ def get_record():
                               smile,
                               calm,
                               image_url)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
-        cur.execute(query, (adi_client_id,
+        cur.execute(query, (adi_client['face_id'],
+                            adi_client_id,
                             adi_client['camera_id'],
                             adi_client['age']['low'],
                             adi_client['age']['high'],
@@ -69,6 +71,12 @@ def get_record():
                             adi_client['emotions']['calm'],
                             adi_client['image_url']))
         conn.commit()
+    else:
+        pass
+        # query = """
+        # query = """
+        # SELECT id FROM adi_face WHERE
+        # """
         # cur.execute("INSERT INTO product(store_id, url, price, charecteristics, color, dimensions) VALUES (%s, %s, %s, %s, %s, %s)", (1,  'http://www.google.com', '$20', json.dumps(thedictionary), 'red', '8.5x11'))
 
 
