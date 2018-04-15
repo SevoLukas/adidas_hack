@@ -267,8 +267,7 @@ def get_record():
                                            adi_client['emotions']['smile'],
                                            adi_client['emotions']['calm'],
                                            adi_client['image_url']))
-                else:
-                    continue
+                    return 'ok'
     return 'ok'
 
 
