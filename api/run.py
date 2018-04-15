@@ -5,7 +5,6 @@ from psycopg2 import pool
 
 from api.settings import HOST, PORT, DEBUG
 from helpers.resizer import resize_and_upload
-import logging
 
 app = Flask(__name__)
 db = pool.SimpleConnectionPool(
@@ -17,7 +16,7 @@ db = pool.SimpleConnectionPool(
 def get_cursor():
     con = db.getconn()
     try:
-        yield con
+        yield con.cursor()
     finally:
         con.commit()
         db.putconn(con)
@@ -63,7 +62,6 @@ def get_latest_records():
         'timestamp': result[14],
 
     } for result in results]
-    logging.error(data)
     response = app.response_class(
         response=json.dumps(data),
         status=200,
