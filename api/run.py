@@ -91,7 +91,7 @@ def get_last_info():
     limit = request.args.get('limit', 50)
     user_id = request.args.get('user_id')
     query = """
-    SELECT adi_face.* FROM adi_face JOIN adi_user a ON adi_face.user_id = a.id WHERE adi_face.user_id = {} LIMIT {}
+    SELECT adi_face.* FROM adi_face JOIN adi_client a ON adi_face.user_id = a.id WHERE adi_face.user_id = {} LIMIT {}
     """.format(user_id, limit)
 
     with get_cursor() as cursor:
