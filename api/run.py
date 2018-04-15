@@ -27,7 +27,7 @@ def resize_api():
     return 'ok'
 
 
-@app.route("/get-record", methods=['GET', 'POST'])
+@app.route("/get-record", methods=['POST'])
 def get_record():
     cur = conn.cursor()
     adi_client = request.get_json(silent=True)
@@ -71,31 +71,47 @@ def get_record():
                             adi_client['image_url']))
         conn.commit()
     else:
-        pass
-        # query = """
-        # query = """
-        # SELECT id FROM adi_face WHERE
-        # """
-        # cur.execute("INSERT INTO product(store_id, url, price, charecteristics, color, dimensions) VALUES (%s, %s, %s, %s, %s, %s)", (1,  'http://www.google.com', '$20', json.dumps(thedictionary), 'red', '8.5x11'))
+        for match in adi_client['matches']:
+            query = "SELECT user_id FROM adi_face WHERE id='{}'".format(match)
+            cur.execute(query)
+            matched_ids = cur.fetchone()
+            if matched_ids is not None:
+                user_id = matched_ids[0]
+                query = """
+                        INSERT INTO adi_face (id,
+                                              user_id,
+                                              camera_id,
+                                              min_age,
+                                              max_age,
+                                              happy,
+                                              sad,
+                                              angry,
+                                              confused,
+                                              disgusted,
+                                              surprised,
+                                              smile,
+                                              calm,
+                                              image_url)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        """
+                cur.execute(query, (adi_client['face_id'],
+                                    user_id,
+                                    adi_client['camera_id'],
+                                    adi_client['age']['low'],
+                                    adi_client['age']['high'],
+                                    adi_client['emotions']['happy'],
+                                    adi_client['emotions']['sad'],
+                                    adi_client['emotions']['angry'],
+                                    adi_client['emotions']['confused'],
+                                    adi_client['emotions']['disgusted'],
+                                    adi_client['emotions']['surprised'],
+                                    adi_client['emotions']['smile'],
+                                    adi_client['emotions']['calm'],
+                                    adi_client['image_url']))
+                conn.commit()
+            else:
+                continue
 
-
-        # """
-
-    # {
-    #     'is_new_user': len(matches) == 0,
-    #     'matches': matches,
-    #     'face_id': face_id,
-    #     'camera_id': get_camera_id(key),
-    #     'age': get_age_info(face_detail),
-    #     'gender': get_gender(face_detail),
-    #     'emotions': get_emotions(face_detail),
-    #     'image_url': FACES_PREFIX + face_id + '.jpg',
-    # }
-
-    # cur.execute("""SELECT * from adi_client""")
-    # rows = cur.fetchall()
-    # for row in rows:
-    #     logging.warning(row)
     return 'ok'
 
 
