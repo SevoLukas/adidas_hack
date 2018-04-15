@@ -63,7 +63,6 @@ def get_latest_records():
         'timestamp': result[14],
 
     } for result in results]
-    logging.error(data)
     response = app.response_class(
         response=json.dumps(data),
         status=200,
