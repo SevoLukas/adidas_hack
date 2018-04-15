@@ -56,8 +56,8 @@ def get_record():
         """
         cur.execute(query, (adi_client_id,
                             adi_client['camera_id'],
-                            adi_client['age']['min'],
-                            adi_client['age']['max'],
+                            adi_client['age']['low'],
+                            adi_client['age']['high'],
                             adi_client['emotions']['happy'],
                             adi_client['emotions']['sad'],
                             adi_client['emotions']['angry'],
