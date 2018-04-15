@@ -1,4 +1,8 @@
+from contextlib import contextmanager
+
 from flask import Flask, request, json, jsonify
+from psycopg2 import pool
+
 from api.settings import HOST, PORT, DEBUG
 from helpers.resizer import resize_and_upload
 import psycopg2
@@ -6,7 +10,19 @@ import logging
 
 
 app = Flask(__name__)
-conn = psycopg2.connect("dbname='dd5fd1bu74cdkb' user='vonhwrarqlubaj' host='ec2-54-247-81-88.eu-west-1.compute.amazonaws.com' password='cc3766fdc1656b071806c4209eea4273ce16cdf7e5e8050d5fe30a5fbe5e0f7a'")
+# conn = psycopg2.connect("dbname='dd5fd1bu74cdkb' user='vonhwrarqlubaj' host='ec2-54-247-81-88.eu-west-1.compute.amazonaws.com' password='cc3766fdc1656b071806c4209eea4273ce16cdf7e5e8050d5fe30a5fbe5e0f7a'")
+db = pool.SimpleConnectionPool(
+    1, 10, host='ec2-54-247-81-88.eu-west-1.compute.amazonaws.com', database='dd5fd1bu74cdkb', user='vonhwrarqlubaj',
+    password='cc3766fdc1656b071806c4209eea4273ce16cdf7e5e8050d5fe30a5fbe5e0f7a', port=5432)
+
+
+@contextmanager
+def get_cursor():
+    con = db.getconn()
+    try:
+        yield con
+    finally:
+        db.putconn(con)
 
 
 @app.route("/")
@@ -16,7 +32,6 @@ def hello():
 
 @app.route('/latest-records', methods=['GET'])
 def get_latest_records():
-    cur = conn.cursor()
     query = """
     SELECT adi_face.*, adi_client.gender FROM adi_face
     JOIN adi_client
@@ -24,8 +39,10 @@ def get_latest_records():
     ORDER BY adi_face.timestamp DESC
     LIMIT 10
     """
-    cur.execute(query)
-    results = cur.fetchall()
+    with get_cursor() as cursor:
+        cursor.execute(query)
+        cursor.execute(query)
+        results = cursor.fetchall()
     data = [{
         'face_id': result[0],
         'user_id': result[1],
