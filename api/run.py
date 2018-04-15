@@ -14,6 +14,26 @@ def hello():
     return "Hello World!"
 
 
+@app.route("/last4")
+def return_last_4_images():
+    cur = conn.cursor()
+    query = """
+    SELECT DISTINCT ON (camera_id) camera_id, image_url FROM (SELECT camera_id, image_url FROM adi_face 
+    ORDER BY timestamp DESC) AS fuck_this_query;
+    """
+    cur.execute(query)
+    results = cur.fetchall()
+    response = app.response_class(
+        response=json.dumps(results),
+        status=200,
+        mimetype='application/json'
+    )
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE,OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, Content-Length, X-Requested-With'
+    return response
+
+
 @app.route('/latest-records', methods=['GET'])
 def get_latest_records():
     cur = conn.cursor()
@@ -49,7 +69,6 @@ def get_latest_records():
         'timestamp': result[14],
 
     } for result in results]
-    logging.error(data)
     response = app.response_class(
         response=json.dumps(data),
         status=200,
