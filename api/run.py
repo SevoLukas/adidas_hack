@@ -131,14 +131,43 @@ def get_last_info():
     limit = request.args.get('limit', 50)
     user_id = request.args.get('user_id')
     query = """
-    SELECT adi_face.* FROM adi_face JOIN adi_client a ON adi_face.user_id = a.id WHERE adi_face.user_id = {} 
+    SELECT adi_face.*, adi_client.gender FROM adi_face
+    JOIN adi_client
+      ON adi_face.user_id=adi_client.id
+    WHERE adi_face.user_id={}
     ORDER BY adi_face.timestamp DESC LIMIT {}
     """.format(user_id, limit)
 
     with get_cursor() as cursor:
         cursor.execute(query)
+        results = cursor.fetchall()
+    if results is None:
+        results = []
+    data = [{
+        'face_id': result[0],
+        'user_id': result[1],
+        'camera_id': result[2],
+        'gender': result[15],
+        'age': {
+            'min': result[3],
+            'max': result[4],
+        },
+        'emotions': {
+            'happy': result[5],
+            'sad': result[6],
+            'angry': result[7],
+            'confused': result[8],
+            'disgusted': result[9],
+            'surprised': result[10],
+            'smile': result[11],
+            'calm': result[12],
+        },
+        'image_url': result[13],
+        'timestamp': result[14],
+
+    } for result in results]
     response = app.response_class(
-        response=json.dumps(cursor.fetchall()),
+        response=json.dumps(data),
         status=200,
         mimetype='application/json'
     )
