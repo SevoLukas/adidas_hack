@@ -1,6 +1,4 @@
 from flask import Flask, request, json
-from flask.ext.cache import Cache
-import time
 from api.settings import HOST, PORT, DEBUG
 from helpers.resizer import resize_and_upload
 import psycopg2
@@ -8,7 +6,6 @@ import logging
 
 
 app = Flask(__name__)
-cache = Cache(app, config={'CACHE_TYPE': 'redis'})
 conn = psycopg2.connect("dbname='dd5fd1bu74cdkb' user='vonhwrarqlubaj' host='ec2-54-247-81-88.eu-west-1.compute.amazonaws.com' password='cc3766fdc1656b071806c4209eea4273ce16cdf7e5e8050d5fe30a5fbe5e0f7a'")
 
 
@@ -17,24 +14,18 @@ def hello():
     return "Hello World!"
 
 
-@cache.memoize(timeout=60)
-def query_db():
-    time.sleep(5)
-    cur = conn.cursor()
-    query = """
-        SELECT adi_face.*, adi_client.gender FROM adi_face
-        JOIN adi_client
-          ON adi_face.user_id=adi_client.id
-        ORDER BY adi_face.timestamp DESC
-        LIMIT 10
-        """
-    cur.execute(query)
-    return cur.fetchall()
-
-
 @app.route('/latest-records', methods=['GET'])
 def get_latest_records():
-    results = query_db()
+    cur = conn.cursor()
+    query = """
+            SELECT adi_face.*, adi_client.gender FROM adi_face
+            JOIN adi_client
+              ON adi_face.user_id=adi_client.id
+            ORDER BY adi_face.timestamp DESC
+            LIMIT 10
+            """
+    cur.execute(query)
+    results = cur.fetchall()
     data = [{
         'face_id': result[0],
         'user_id': result[1],
