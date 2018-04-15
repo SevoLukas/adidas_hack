@@ -21,6 +21,8 @@ def get_latest_records():
     SELECT adi_face.*, adi_client.gender FROM adi_face
     JOIN adi_client
       ON adi_face.user_id=adi_client.id
+    ORDER BY adi_face.timestamp DESC
+    LIMIT 10
     """
     cur.execute(query)
     results = cur.fetchall()
@@ -53,7 +55,7 @@ def get_latest_records():
         status=200,
         mimetype='application/json'
     )
-    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers['Access-Control-Allow-Origin'] = '*'
     return response
 
 
