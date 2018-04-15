@@ -250,7 +250,15 @@ def recommend_product():
         else:
             product = 'CV9889'
 
-    return jsonify({'product': product, 'accuracy': accuracy})
+    response = app.response_class(
+        response={'product': product, 'accuracy': accuracy},
+        status=200,
+        mimetype='application/json'
+    )
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE,OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, Content-Length, X-Requested-With'
+    return response
 
 
 if __name__ == '__main__':
