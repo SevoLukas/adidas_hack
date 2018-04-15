@@ -17,7 +17,7 @@ db = pool.SimpleConnectionPool(
 def get_cursor():
     con = db.getconn()
     try:
-        yield con
+        yield con.cursor()
     finally:
         con.commit()
         db.putconn(con)
