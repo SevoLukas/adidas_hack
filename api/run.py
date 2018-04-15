@@ -13,7 +13,6 @@ conn = psycopg2.connect("dbname='dd5fd1bu74cdkb' user='vonhwrarqlubaj' host='ec2
 
 
 @app.route("/")
-@cross_origin()
 def hello():
     return "Hello World!"
 
@@ -62,7 +61,6 @@ def get_latest_records():
 
 
 @app.route("/resize", methods=["GET"])
-@cross_origin()
 def resize_api():
     url = request.args.get('url')
     face_id = request.args.get('face_id')
@@ -76,7 +74,6 @@ def resize_api():
 
 
 @app.route("/get-record", methods=['POST'])
-@cross_origin()
 def get_record():
     cur = conn.cursor()
     adi_client = request.get_json(silent=True)
