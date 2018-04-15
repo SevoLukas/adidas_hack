@@ -1,5 +1,4 @@
-from flask import Flask, request
-from flask import jsonify
+from flask import Flask, request, json, jsonify
 from api.settings import HOST, PORT, DEBUG
 from helpers.resizer import resize_and_upload
 import psycopg2
@@ -13,6 +12,43 @@ conn = psycopg2.connect("dbname='dd5fd1bu74cdkb' user='vonhwrarqlubaj' host='ec2
 @app.route("/")
 def hello():
     return "Hello World!"
+
+
+@app.route('/latest-records', methods=['GET'])
+def get_latest_records():
+    cur = conn.cursor()
+    query = """
+    SELECT adi_face.*, adi_client.gender FROM adi_face
+    JOIN adi_client
+      ON adi_face.user_id=adi_client.id
+    """
+    cur.execute(query)
+    results = cur.fetchall()
+    data = [{
+        'face_id': result[0],
+        'user_id': result[1],
+        'camera_id': result[2],
+        'min_age': result[3],
+        'max_age': result[4],
+        'happy': result[5],
+        'sad': result[6],
+        'angry': result[7],
+        'confused': result[8],
+        'disgusted': result[8],
+        'surprised': result[8],
+        'smile': result[8],
+        'calm': result[8],
+        'image_url': result[8],
+        'gender': result[8],
+
+    } for result in results]
+    logging.error(data)
+    response = app.response_class(
+        response=json.dumps(data),
+        status=200,
+        mimetype='application/json'
+    )
+    return response
 
 
 @app.route("/resize", methods=["GET"])
@@ -112,7 +148,6 @@ def get_record():
                 conn.commit()
             else:
                 continue
-
     return 'ok'
 
 
