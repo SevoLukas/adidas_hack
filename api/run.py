@@ -1,4 +1,5 @@
 from flask import Flask, request, json, jsonify
+from flask_cors import CORS
 from api.settings import HOST, PORT, DEBUG
 from helpers.resizer import resize_and_upload
 import psycopg2
@@ -6,6 +7,7 @@ import logging
 
 
 app = Flask(__name__)
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 conn = psycopg2.connect("dbname='dd5fd1bu74cdkb' user='vonhwrarqlubaj' host='ec2-54-247-81-88.eu-west-1.compute.amazonaws.com' password='cc3766fdc1656b071806c4209eea4273ce16cdf7e5e8050d5fe30a5fbe5e0f7a'")
 
 
@@ -14,7 +16,7 @@ def hello():
     return "Hello World!"
 
 
-@app.route('/latest-records', methods=['GET'])
+@app.route('/api/latest-records', methods=['GET'])
 def get_latest_records():
     cur = conn.cursor()
     query = """
