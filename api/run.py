@@ -26,6 +26,18 @@ BUCKET = 'rekognition-adihack'
 PREFIX = 'https://s3-eu-west-1.amazonaws.com/rekognition-adihack/'
 
 
+def make_response(data):
+    response = app.response_class(
+            response=json.dumps(data),
+            status=200,
+            mimetype='application/json'
+        )
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE,OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, Content-Length, X-Requested-With'
+    return response
+
+
 @contextmanager
 def get_cursor():
     con = db.getconn()
@@ -79,15 +91,8 @@ def get_latest_records():
             'timestamp': result[14],
 
         } for result in results]
-    response = app.response_class(
-        response=json.dumps(data),
-        status=200,
-        mimetype='application/json'
-    )
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE,OPTIONS'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, Content-Length, X-Requested-With'
-    return response
+
+    return make_response(data)
 
 
 @app.route('/get-camera-photos', methods=['GET'])
@@ -110,15 +115,27 @@ def get_camera_photos():
             sorted_x = sorted(photos.items(), key=operator.itemgetter(1))
             if len(sorted_x) > 0:
                 response[camera] = PREFIX + sorted_x[-1][0]
-    response = app.response_class(
-        response=json.dumps(response),
-        status=200,
-        mimetype='application/json'
-    )
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE,OPTIONS'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, Content-Length, X-Requested-With'
-    return response
+
+    return make_response(response)
+
+
+@app.route("/get_purchases")
+def get_purchases():
+    user_id = request.args.get('usr_id')
+    query = """
+    SELECT * FROM adi_user_purchases WHERE adi_user_purchases.user_id = {}
+    """.format(user_id)
+
+    with get_cursor() as cursor:
+        cursor.execute(query)
+        results = cursor.fetchall()
+    data = [{'user_id': result[1],
+             'purchase_id': result[0],
+             'product': result[2],
+             'amount': result[3]
+             } for result in results]
+
+    return make_response(data)
 
 
 @app.route("/resize", methods=["GET"])
@@ -173,15 +190,8 @@ def get_last_info():
         'timestamp': result[14],
 
     } for result in results]
-    response = app.response_class(
-        response=json.dumps(data),
-        status=200,
-        mimetype='application/json'
-    )
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE,OPTIONS'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, Content-Length, X-Requested-With'
-    return response
+
+    return make_response(data)
 
 
 @app.route("/get-record", methods=['POST'])
@@ -285,15 +295,7 @@ def recommend_product():
         else:
             product = 'CV9889'
 
-    response = app.response_class(
-        response={'product': product, 'accuracy': accuracy},
-        status=200,
-        mimetype='application/json'
-    )
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE,OPTIONS'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, Content-Length, X-Requested-With'
-    return response
+    return make_response({'product': product, 'accuracy': accuracy})
 
 
 if __name__ == '__main__':
