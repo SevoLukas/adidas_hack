@@ -1,5 +1,6 @@
 boto3==1.7.4
 Flask==0.12.2
+flask-cache==0.13.1
 Pillow==5.1.0
 requests==2.18.4
 gunicorn==19.7.1

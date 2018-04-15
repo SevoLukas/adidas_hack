@@ -1,27 +1,15 @@
-from contextlib import contextmanager
-
-from flask import Flask, request, json, jsonify
-from psycopg2 import pool
-
+from flask import Flask, request, json
+from flask.ext.cache import Cache
+import time
 from api.settings import HOST, PORT, DEBUG
 from helpers.resizer import resize_and_upload
+import psycopg2
 import logging
 
 
 app = Flask(__name__)
-# conn = psycopg2.connect("dbname='dd5fd1bu74cdkb' user='vonhwrarqlubaj' host='ec2-54-247-81-88.eu-west-1.compute.amazonaws.com' password='cc3766fdc1656b071806c4209eea4273ce16cdf7e5e8050d5fe30a5fbe5e0f7a'")
-db = pool.SimpleConnectionPool(
-    1, 10, host='ec2-54-247-81-88.eu-west-1.compute.amazonaws.com', database='dd5fd1bu74cdkb', user='vonhwrarqlubaj',
-    password='cc3766fdc1656b071806c4209eea4273ce16cdf7e5e8050d5fe30a5fbe5e0f7a', port=5432)
-
-
-@contextmanager
-def get_cursor():
-    con = db.getconn()
-    try:
-        yield con
-    finally:
-        db.putconn(con)
+cache = Cache(app, config={'CACHE_TYPE': 'redis'})
+conn = psycopg2.connect("dbname='dd5fd1bu74cdkb' user='vonhwrarqlubaj' host='ec2-54-247-81-88.eu-west-1.compute.amazonaws.com' password='cc3766fdc1656b071806c4209eea4273ce16cdf7e5e8050d5fe30a5fbe5e0f7a'")
 
 
 @app.route("/")
@@ -29,18 +17,24 @@ def hello():
     return "Hello World!"
 
 
+@cache.memoize(timeout=60)
+def query_db():
+    time.sleep(5)
+    cur = conn.cursor()
+    query = """
+        SELECT adi_face.*, adi_client.gender FROM adi_face
+        JOIN adi_client
+          ON adi_face.user_id=adi_client.id
+        ORDER BY adi_face.timestamp DESC
+        LIMIT 10
+        """
+    cur.execute(query)
+    return cur.fetchall()
+
+
 @app.route('/latest-records', methods=['GET'])
 def get_latest_records():
-    query = """
-    SELECT adi_face.*, adi_client.gender FROM adi_face
-    JOIN adi_client
-      ON adi_face.user_id=adi_client.id
-    ORDER BY adi_face.timestamp DESC
-    LIMIT 10
-    """
-    with get_cursor() as cursor:
-        cursor.execute(query)
-        results = cursor.fetchall()
+    results = query_db()
     data = [{
         'face_id': result[0],
         'user_id': result[1],
@@ -84,7 +78,6 @@ def resize_api():
     width = request.args.get('width')
     top = request.args.get('top')
     left = request.args.get('left')
-
     resize_and_upload(url, face_id, height, width, top, left)
     return 'ok'
 
@@ -174,23 +167,6 @@ def get_record():
             else:
                 continue
     return 'ok'
-
-
-@app.route("/recommend", methods=["POST"])
-def recommend_product():
-    age = request.args.get('age')
-    gender = request.args.get('gender')
-    gender_code = 1 if gender == 'male' else 2
-    accuracy = 100
-    if gender_code == 1:
-        product = 'BR6930'
-    else:
-        if age < 40:
-            product = 'BY8745'
-        else:
-            product = 'CV9889'
-
-    return jsonify({'product': product, 'accuracy': accuracy})
 
 
 if __name__ == '__main__':
