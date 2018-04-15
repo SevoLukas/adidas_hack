@@ -36,7 +36,7 @@ def get_record():
         INSERT INTO adi_client (gender) VALUES(%s)
         RETURNING id
         """
-        cur.execute(query, (adi_client.get('gender'),))
+        cur.execute(query, (adi_client.get('gender', ''),))
         adi_client_id = cur.fetchone()[0]
         query = """
         INSERT INTO adi_face (id,
