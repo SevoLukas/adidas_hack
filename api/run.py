@@ -1,3 +1,6 @@
+import boto3
+import os
+import operator
 from contextlib import contextmanager
 
 from flask import Flask, request, json, jsonify
@@ -10,6 +13,12 @@ app = Flask(__name__)
 db = pool.SimpleConnectionPool(
     1, 10, host='ec2-54-247-81-88.eu-west-1.compute.amazonaws.com', database='dd5fd1bu74cdkb', user='vonhwrarqlubaj',
     password='cc3766fdc1656b071806c4209eea4273ce16cdf7e5e8050d5fe30a5fbe5e0f7a', port=5432)
+s3 = boto3.client('s3',
+                  aws_access_key_id=os.getenv('AWS_ACCESS_KEY', ),
+                  aws_secret_access_key=os.getenv('AWS_SECRET'),
+                  region_name='eu-west-1')
+BUCKET = 'rekognition-adihack'
+PREFIX = 'https://s3-eu-west-1.amazonaws.com/rekognition-adihack/'
 
 
 @contextmanager
@@ -64,6 +73,37 @@ def get_latest_records():
     } for result in results]
     response = app.response_class(
         response=json.dumps(data),
+        status=200,
+        mimetype='application/json'
+    )
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE,OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, Content-Length, X-Requested-With'
+    return response
+
+
+@app.route('/get-camera-photos', methods=['GET'])
+def get_camera_photos():
+    cameras = [
+        'entrance',
+        'cashRegister',
+        'camera1',
+        'camera2',
+        'camera3',
+    ]
+    response = {i: None for i in cameras}
+    for camera in cameras:
+        photos = {}
+        objects = s3.list_objects(Bucket=BUCKET, Prefix='camera/' + camera)
+        if 'Contents' in objects:
+            for i in objects['Contents']:
+                if i['Key'].endswith('.jpg') or i['Key'].endswith('.jpeg'):
+                    photos[i['Key']] = i['LastModified']
+            sorted_x = sorted(photos.items(), key=operator.itemgetter(1))
+            if len(sorted_x) > 0:
+                response[camera] = PREFIX + sorted_x[-1][0]
+    response = app.response_class(
+        response=json.dumps(response),
         status=200,
         mimetype='application/json'
     )
