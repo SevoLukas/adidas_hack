@@ -14,7 +14,7 @@ rekognition.create_collection(
 )
 
 
-conn = psycopg2.connect("dbname='dd5fd1bu74cdkb' user='vonhwrarqlubaj' host='ec2-54-247-81-88.eu-west-1.compute.amazonaws.com' password='cc3766fdc1656b071806c4209eea4273ce16cdf7e5e8050d5fe30a5fbe5e0f7a'")
+conn = psycopg2.connect("dbname='' user='' host='' password=''")
 cur = conn.cursor()
 
 query = """
