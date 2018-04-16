@@ -13,9 +13,9 @@ app = Flask(__name__)
 db = pool.SimpleConnectionPool(
     1,
     10,
-    host='ec2-54-247-81-88.eu-west-1.compute.amazonaws.com',
-    database='dd5fd1bu74cdkb', user='vonhwrarqlubaj',
-    password='cc3766fdc1656b071806c4209eea4273ce16cdf7e5e8050d5fe30a5fbe5e0f7a',
+    host='',
+    database='', user='',
+    password='',
     port=5432)
 s3 = boto3.client(
     's3',
